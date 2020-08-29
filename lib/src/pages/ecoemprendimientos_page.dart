@@ -51,6 +51,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
   ];
 
   List<String> _zonasLpz = [
+    //zonas de La Paz
     'Elegir Zona',
     'Achumani',
     'Alto obrajes',
