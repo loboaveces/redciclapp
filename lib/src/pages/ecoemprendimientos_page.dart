@@ -37,6 +37,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
   Position _currentPosition;
 
   List<String> _localidades = [
+    //Ciudades
     'Elegir Ciudad',
     // 'Beni',
     // 'Cochabamba',
