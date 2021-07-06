@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "501436194168",
+    "firebase_url": "https://redciclapp-60ddb.firebaseio.com",
+    "project_id": "redciclapp-60ddb",
+    "storage_bucket": "redciclapp-60ddb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:501436194168:android:857fc7d907eb2ac57ebc8d",
+        "android_client_info": {
+          "package_name": "bo.org.redciclapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "501436194168-hi7i2m9fumrvh3sqh6dd2htiot3p5118.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "bo.org.redciclapp",
+            "certificate_hash": "f0a6cc603973f1aaf5dcedc95a8d4987d2f7514d"
+          }
+        },
+        {
+          "client_id": "501436194168-dfc6cpv8lrk84iamoiopv1pvng3d8ado.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwXE7bLdZ_fEDhBU2IrsEmoeHDdMUncI4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "501436194168-dfc6cpv8lrk84iamoiopv1pvng3d8ado.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

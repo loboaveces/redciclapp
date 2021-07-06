@@ -44,9 +44,12 @@ app.*.map.json
 
 
 #Excluidos
-lib\src\bloc
-lib\src\states\current_user.dart
-lib\src\providers
+lib/src/bloc
+lib/src/states
+lib/src/providers
 android/key_properties
+lib/src/preferencias_usuario
 
 key.properties
+notas
+notas_release
