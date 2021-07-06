@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "501436194168-hi7i2m9fumrvh3sqh6dd2htiot3p5118.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "bo.org.redciclapp",
+            "certificate_hash": "f0a6cc603973f1aaf5dcedc95a8d4987d2f7514d"
+          }
+        },
+        {
           "client_id": "501436194168-dfc6cpv8lrk84iamoiopv1pvng3d8ado.apps.googleusercontent.com",
           "client_type": 3
         }

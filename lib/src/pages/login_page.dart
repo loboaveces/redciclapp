@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:redciclapp/src/bloc/provider2.dart';
+import 'package:redciclapp/src/pages/enrutador_page.dart';
+import 'package:redciclapp/src/pages/verifica_page.dart';
 import 'package:redciclapp/src/providers/usuario_provider.dart';
 import 'package:redciclapp/src/states/current_user.dart';
 
@@ -58,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
           ),
+          SizedBox(height: 5.0),
           FlatButton(
             child: Text('¿No tienes cuenta? --> Crea una cuenta'),
             onPressed: () => Navigator.pushReplacementNamed(context, 'signin'),
@@ -110,33 +113,48 @@ class _LoginPageState extends State<LoginPage> {
     return StreamBuilder(
       stream: bloc.passwordStream,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.0),
-          child: TextField(
-            controller: _passwordController,
-            obscureText: true,
-            decoration: InputDecoration(
-              icon: Icon(Icons.lock_outline,
-                  color: Color.fromRGBO(34, 181, 115, 1.0)),
-              // hintText: 'nombre.apellido@aldeasinfantiles.org.bo',
-              labelText: 'Contraseña',
-              labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
-              errorText: snapshot.error,
-              enabledBorder: UnderlineInputBorder(
-                borderSide:
-                    BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide:
-                    BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-              ),
-              border: UnderlineInputBorder(
-                borderSide:
-                    BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+        return Column(
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child: TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  icon: Icon(Icons.lock_outline,
+                      color: Color.fromRGBO(34, 181, 115, 1.0)),
+                  // hintText: 'nombre.apellido@aldeasinfantiles.org.bo',
+                  labelText: 'Contraseña',
+                  labelStyle:
+                      TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
+                  errorText: snapshot.error,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+                  ),
+                  border: UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+                  ),
+                ),
+                onChanged: bloc.changePassword,
               ),
             ),
-            onChanged: bloc.changePassword,
-          ),
+            FlatButton(
+              child: Text(
+                '¿Olvidaste tu contraseña? --> Restablecer',
+                style: TextStyle(
+                  fontSize: 11,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              onPressed: () => Navigator.pushReplacementNamed(context, 'reset'),
+            ),
+          ],
         );
       },
     );
@@ -174,14 +192,30 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (await _currentUser.loginUser(email, password) && info['ok']) {
-        Navigator.pushReplacementNamed(context, 'inicio');
+        _verificar(email, password, _currentUser);
+        // Navigator.pushReplacementNamed(context, 'inicio');
       } else {
         Scaffold.of(context).showSnackBar(
           SnackBar(
               content:
                   Text("Email o contraseña incorrectos, intenta nuevamente"),
-              duration: Duration(seconds: 2)),
+              duration: Duration(seconds: 4)),
         );
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void _verificar(
+      String email, String password, CurrentUser _currentUser) async {
+    try {
+      if (await _currentUser.verifica(email, password)) {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (BuildContext context) => RootPage()));
+      } else {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (BuildContext context) => VerificaPage()));
       }
     } catch (e) {
       print(e);

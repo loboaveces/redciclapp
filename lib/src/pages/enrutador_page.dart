@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-//import 'package:redciclapp/src/pages/home_page.dart';
-import 'package:redciclapp/src/pages/inicio_page.dart';
+// //import 'package:redciclapp/src/pages/home_page.dart';
+// import 'package:redciclapp/src/pages/inicio_page.dart';
+import 'package:redciclapp/src/pages/intro_page.dart';
 import 'package:redciclapp/src/pages/login_page.dart';
 import 'package:redciclapp/src/states/current_user.dart';
 
@@ -44,7 +45,7 @@ class _RootPageState extends State<RootPage> {
         retVal = LoginPage();
         break;
       case AuthStatus.loggedIn:
-        retVal = Inicio();
+        retVal = IntroPage();
         break;
     }
     return retVal;

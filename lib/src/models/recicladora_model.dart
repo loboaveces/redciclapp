@@ -25,6 +25,8 @@ class Recicladora {
     this.dias,
     this.horarios,
     this.correo,
+    this.tienedenuncia,
+    this.detalledenuncia,
   });
 
   String id;
@@ -41,6 +43,8 @@ class Recicladora {
   String dias;
   String horarios;
   String correo;
+  String tienedenuncia;
+  String detalledenuncia;
 
   factory Recicladora.fromJson(Map<String, dynamic> json) => Recicladora(
         id: json["id"],
@@ -57,10 +61,12 @@ class Recicladora {
         dias: json["dias"],
         horarios: json["horarios"],
         correo: json["correo"],
+        tienedenuncia: json["tienedenuncia"],
+        detalledenuncia: json["detalledenuncia"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        //"id": id,
         "celular": celular,
         "departamento": departamento,
         "detalles": detalles,
@@ -74,5 +80,7 @@ class Recicladora {
         "dias": dias,
         "horarios": horarios,
         "correo": correo,
+        "tienedenuncia": tienedenuncia,
+        "detalledenuncia": detalledenuncia,
       };
 }

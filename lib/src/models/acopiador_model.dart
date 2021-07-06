@@ -24,7 +24,9 @@ class Acopiador {
     this.longitud,
     this.horarios,
     this.correo,
-    this.barrio,
+    this.aprobacion,
+    this.tienedenuncia,
+    this.detalledenuncia,
   });
 
   String id;
@@ -41,7 +43,9 @@ class Acopiador {
   String longitud;
   String horarios;
   String correo;
-  String barrio;
+  String aprobacion;
+  String tienedenuncia;
+  String detalledenuncia;
 
   factory Acopiador.fromJson(Map<String, dynamic> json) => Acopiador(
         id: json["id"],
@@ -56,13 +60,15 @@ class Acopiador {
         fecha: json["fecha"],
         correo: json["correo"],
         horarios: json["horarios"],
-        barrio: json["barrio"],
         latitud: json["latitud"],
         longitud: json["longitud"],
+        aprobacion: json["aprobacion"],
+        tienedenuncia: json["tienedenuncia"],
+        detalledenuncia: json["detalledenuncia"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        //"id": id,
         "celular": celular,
         "ciudad": ciudad,
         "detalles": detalles,
@@ -75,7 +81,9 @@ class Acopiador {
         "latitud": latitud,
         "longitud": longitud,
         "correo": correo,
-        "barrio": barrio,
         "horarios": horarios,
+        "aprobacion": aprobacion,
+        "tienedenuncia": tienedenuncia,
+        "detalledenuncia": detalledenuncia,
       };
 }

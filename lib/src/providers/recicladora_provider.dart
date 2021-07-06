@@ -48,6 +48,24 @@ class RecicladoraProvider {
     return recicladora;
   }
 
+  Future<List<Recicladora>> cargar1Recicladora(Recicladora revision) async {
+    //final url = '$_url/revisiones.json?auth=${_prefs.token}';
+    final url = '$_url/recicladoras/${revision.id}.json';
+    final resp = await http.get(url);
+
+    final Map<String, dynamic> decodedData = json.decode(resp.body);
+    final List<Recicladora> recicladora = new List();
+
+    if (decodedData == null) return [];
+    decodedData.forEach((id, rev) {
+      final revTemp = Recicladora.fromJson(rev);
+      revTemp.id = id;
+      recicladora.add(revTemp);
+    });
+    print(recicladora);
+    return recicladora;
+  }
+
   Future<String> subirimagen(File imagen) async {
     final url = Uri.parse(
         'https://api.cloudinary.com/v1_1/redcicla-app/image/upload?upload_preset=lxswftl3');
@@ -75,5 +93,13 @@ class RecicladoraProvider {
     final respData = json.decode(resp.body);
     print(respData);
     return respData['secure_url'];
+  }
+
+  Future<int> borrarRegistro(String id) async {
+    final url = '$_url/recicladoras/$id.json';
+    final resp = await http.delete(url);
+    print(json.decode(resp.body));
+
+    return 1;
   }
 }

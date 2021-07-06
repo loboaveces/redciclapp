@@ -24,24 +24,50 @@ dependencies:
   flutter:
     sdk: flutter
   firebase_auth:
-  provider:
-  image_picker:
-  mime_type:
-  http_parser:
-  geolocator:
-  flutter_map:
-  latlong:
+  provider: ^4.3.2+2
+  image_picker: ^0.6.7+22
+  mime_type: ^0.3.2
+  http_parser: ^3.1.4
+  flutter_map: ^0.9.0
+  latlong: ^0.6.1
+  firebase_core: 
+  google_sign_in: ^4.5.9
+  introduction_screen: ^1.0.7
+  #location
+  #google_maps_flutter: ^1.0.3
+  url_launcher: ^5.7.10
+  geolocator: 
+  http: ^0.12.2
+  #flutter_rating_bar: ^3.0.1+1
+  #json_serializable: ^3.5.0
+  #Para capturar la pantalla y compartir
+  screenshot: ^0.2.0
+  esys_flutter_share: ^1.0.2
+  #Para enviar mensaje por whatsapp
+  flutter_open_whatsapp: ^0.1.2
+  #Notificaciones
+  firebase_messaging: 
+  path_provider: ^1.6.27
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
-  http:
-  shared_preferences:
-  rxdart:
+  shared_preferences: ^0.5.12+4
+  rxdart: ^0.25.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.8.1
+  #pedantic: ^1.9.2
+  #build_runner: ^1.10.3  
+
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon.png"
+  adaptive_icon_background: "assets/icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

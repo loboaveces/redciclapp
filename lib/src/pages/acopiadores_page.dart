@@ -1,6 +1,7 @@
 // import 'dart:html';
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +9,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:redciclapp/src/providers/acopio_provider.dart';
 import 'package:redciclapp/src/utils/utils.dart';
 import 'package:redciclapp/src/models/acopiador_model.dart';
 import 'package:redciclapp/src/preferencias_usuario/preferencias_usuario.dart';
+import 'package:redciclapp/src/widgets/menu_widget.dart';
 
 class AcopiadorPage extends StatefulWidget {
   AcopiadorPage({Key key}) : super(key: key);
@@ -37,31 +40,81 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
   List<String> _localidades = [
     'Elegir Ciudad',
     // 'Beni',
-    'Cochabamba',
+    //'Cochabamba',
     'El Alto',
     'La Paz',
     // 'Oruro',
     // 'Pando',
     // 'Potosí',
-    'Santa Cruz',
+    //'Santa Cruz',
     // 'Sucre',
-    'Tarija',
+    //'Tarija',
   ];
   String _opcionSeleccionada = 'Elegir Ciudad';
+
+  List<String> _zonasLpz = [
+    'Elegir Zona',
+    'Achumani',
+    'Alto obrajes',
+    'Bella vista',
+    'Bolognia',
+    'Calacoto',
+    'Centro',
+    'Cota Cota',
+    'Cotahuma',
+    'Cristo Rey',
+    'El Rosario',
+    'Garita de Lima',
+    'Irpavi',
+    'La Florida',
+    'Llojeta',
+    'Los Pinos',
+    'Miraflores',
+    'Obrajes',
+    'San Jorge',
+    'San Miguel',
+    'San Pedro',
+    'Seguencoma',
+    'Sopocachi',
+    'Tembladerani',
+    'Villa Armonía',
+    'Villa Copacabana',
+    'Villa Fátima',
+    'Villa San Antonio',
+    'Vino tinto',
+    'Otras',
+  ];
+  String _zonaElegida = 'Elegir Zona';
 
   // bool _guardando = false;
 
   File foto;
+  bool _foto1 = false;
+  bool _foto2 = false;
+  bool _foto3 = false;
+  bool _foto4 = false;
+
+  bool _otraZona = false;
 
   final formkey = GlobalKey<FormState>();
+  final scaffoldkey = GlobalKey<ScaffoldState>();
   final acopiadorProvider = new CentroAcopioProvider();
+  bool _guardando = false;
 
   bool _quieresMapear = false;
   Acopiador acopiador = new Acopiador();
 
   @override
   Widget build(BuildContext context) {
+    final Acopiador recData = ModalRoute.of(context).settings.arguments;
+    if (recData != null) {
+      acopiador = recData;
+      _opcionSeleccionada = recData.ciudad;
+      _zonaElegida = recData.zona;
+    }
+
     return Scaffold(
+      key: scaffoldkey,
       appBar: AppBar(
           centerTitle: false,
           backgroundColor: Color.fromRGBO(34, 181, 115, 1.0),
@@ -77,6 +130,7 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
               onPressed: _tomarFoto,
             ),
           ]),
+      drawer: MenuWidget(),
       body: SingleChildScrollView(
           child: Container(
               padding: EdgeInsets.all(15.0),
@@ -86,6 +140,11 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       _mostrarFoto(),
+                      _mensajefotos(),
+                      _fotosPredeterminadas(),
+                      SizedBox(
+                        height: 20.0,
+                      ),
                       _nombreCompleto(),
                       SizedBox(
                         height: 30.0,
@@ -103,7 +162,11 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
                       ),
 //horarios
 // dias de la semana
-
+                      _elegirzona(),
+                      _zona(),
+                      SizedBox(
+                        height: 30.0,
+                      ),
                       _celular(),
                       SizedBox(
                         height: 30.0,
@@ -113,10 +176,6 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
                       //   height: 30.0,
                       // ),
                       _queRecibe(),
-                      SizedBox(
-                        height: 30.0,
-                      ),
-                      _zona(),
                       SizedBox(
                         height: 30.0,
                       ),
@@ -134,7 +193,7 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
                       ),
                       _mapear(),
                       _mapa(_quieresMapear),
-                      _crearBoton(context),
+                      _crearBoton(context, recData),
                     ],
                   )))),
     );
@@ -202,8 +261,11 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
   }
 
   _getCurrentLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position =
+        await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+    // Position position =
+    //     await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
       _currentPosition = position;
     });
@@ -230,6 +292,7 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
       cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Escribe solo un número, sin añadir +591',
         labelText: "Nro de celular:",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -311,6 +374,7 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: '3 principales residuos que acopia',
         labelText: "¿Qué residuos recibe?",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -359,30 +423,61 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
   }
 
   Widget _zona() {
-    return TextFormField(
-      initialValue: acopiador.barrio,
-      cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
-      textCapitalization: TextCapitalization.sentences,
-      decoration: InputDecoration(
-        contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
-        labelText: "¿En qué zona/barrio se encuentra?",
-        labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        icon: Icon(
-          Icons.location_city,
-          color: Color.fromRGBO(34, 181, 115, 1.0),
-        ),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        ),
-        border: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        ),
-      ),
-      onSaved: (value) => acopiador.barrio = value,
+    if (_otraZona) {
+      return TextFormField(
+        initialValue: 'Otras',
+        cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+            labelText: "Escribe aquí el nombre de la zona:"),
+        onSaved: (value) => acopiador.zona = value,
+      );
+    } else {
+      return SizedBox();
+    }
+  }
+
+  Widget _elegirzona() {
+    return Row(
+      children: <Widget>[
+        Icon(Icons.location_city, color: Color.fromRGBO(34, 181, 115, 1.0)),
+        SizedBox(width: 30.0),
+        Expanded(
+          child: DropdownButton(
+            value: _zonaElegida,
+            style: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
+            items: getOpcionesDropDownZ(),
+            onChanged: (opt) {
+              if (opt == "Otras") {
+                setState(() {
+                  _otraZona = true;
+                  _zonaElegida = opt;
+                });
+              } else {
+                setState(() {
+                  _otraZona = false;
+                  _zonaElegida = opt;
+                  acopiador.zona = _zonaElegida;
+                });
+              }
+            },
+          ),
+        )
+      ],
     );
+  }
+
+  List<DropdownMenuItem<String>> getOpcionesDropDownZ() {
+    List<DropdownMenuItem<String>> lista = new List();
+    _zonasLpz.forEach((zona) {
+      lista.add(DropdownMenuItem(
+        child: Text(zona),
+        value: zona,
+      ));
+    });
+
+    return lista;
   }
 
   Widget _detalles() {
@@ -392,6 +487,7 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Cualquier detalle que quieras agregar',
         labelText: "Detalles o comentarios",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -446,26 +542,42 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
     return lista;
   }
 
-  Widget _crearBoton(BuildContext context) {
+  Widget _crearBoton(BuildContext context, Acopiador data) {
     return RaisedButton.icon(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
       color: Color.fromRGBO(34, 181, 115, 1.0),
       textColor: Colors.white,
-      onPressed: () => _submit(context),
+      onPressed: () {
+        if (_guardando == false) {
+          _submit(context, data);
+        }
+      },
       icon: Icon(Icons.save),
       label: Text('Guardar'),
     );
   }
 
-  void _submit(BuildContext context) async {
+  void _submit(BuildContext context, Acopiador data) async {
     if (_opcionSeleccionada != 'Elegir') {
       formkey.currentState.validate();
       formkey.currentState.save();
       //Con esto vamos a permitir la edicion de entradas:
-      acopiador.correo = prefs.email;
-      // setState(() {
-      //   _guardando = true;
-      // });
+      if (data != null) {
+        acopiador.correo = data.correo;
+      } else {
+        acopiador.correo = prefs.email;
+      }
+
+      //Esta variable controla si se publica o no el punto de acopio
+      acopiador.aprobacion = 'pendiente';
+
+      //Para controlar los registros reportados
+      acopiador.tienedenuncia = 'No';
+      acopiador.detalledenuncia = '';
+
+      setState(() {
+        _guardando = true;
+      });
 
       if (foto != null) {
         acopiador.fotourl = await acopiadorProvider.subirimagen(foto);
@@ -473,8 +585,15 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
 
       _mensajes(context);
       acopiador.fecha = DateTime.now().toString();
-
-      acopiadorProvider.crearRevision(acopiador);
+      if (acopiador.id == null) {
+        acopiadorProvider.crearRevision(acopiador);
+      } else {
+        acopiadorProvider.editarRevision(acopiador);
+      }
+      mostrarSnackbar("Registro Guardado ");
+      setState(() {
+        _guardando = false;
+      });
     } else {
       mostrarAlerta(context, 'Debes elegir una ciudad');
     }
@@ -493,7 +612,7 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                    'Gracias, se agregó un nuevo punto de acopio a la base de datos'),
+                    'Gracias, esta publicación esta será revisada y aprobada por los administradores'),
                 Image(image: AssetImage('assets/registro.png')),
               ],
             ),
@@ -507,9 +626,93 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
         });
   }
 
+  Widget _mensajefotos() {
+    return Container(
+        margin: EdgeInsets.all(10.0),
+        child: Text(
+          "Carga una foto de tu punto de acopio utilizando los botones de arriba a la derecha, si no tienes una foto puedes hacer clic en alguna de las siguientes fotos predeterminadas.",
+          style: TextStyle(fontSize: 14.0, fontStyle: FontStyle.italic),
+        ));
+  }
+
+  Widget _fotosPredeterminadas() {
+    return Container(
+      height: 80.0,
+      decoration: BoxDecoration(),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = true;
+                _foto2 = false;
+                _foto3 = false;
+                _foto4 = false;
+                _usarPredeterminadas('assets/carton.jpeg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/carton.jpeg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = true;
+                _foto3 = false;
+                _foto4 = false;
+                _usarPredeterminadas('assets/vidrio.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/vidrio.jpg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = false;
+                _foto3 = true;
+                _foto4 = false;
+                _usarPredeterminadas('assets/plastic.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/plastic.jpg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = false;
+                _foto3 = false;
+                _foto4 = true;
+                _usarPredeterminadas('assets/latas.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/latas.jpg'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _mostrarFoto() {
     if (acopiador.fotourl != null) {
-      return Container();
+      return Container(
+        child: FadeInImage(
+            placeholder: AssetImage('assets/barline_loading.gif'),
+            image: NetworkImage(acopiador.fotourl)),
+      );
       //Falta implementar esto
     } else {
       if (foto != null) {
@@ -519,7 +722,22 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
           height: 300.0,
         );
       }
-      return Image.asset('assets/no-image.png');
+      if (_foto1 == true) {
+        setState(() {});
+        return Image.asset('assets/carton.jpeg');
+      } else if (_foto2 == true) {
+        setState(() {});
+        return Image.asset('assets/vidrio.jpg');
+      } else if (_foto3 == true) {
+        setState(() {});
+        return Image.asset('assets/plastic.jpg');
+      } else if (_foto4 == true) {
+        setState(() {});
+        return Image.asset('assets/latas.jpg');
+      } else {
+        setState(() {});
+        return Image.asset('assets/no-image.png');
+      }
     }
   }
 
@@ -529,6 +747,11 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
 
   _tomarFoto() async {
     _procesarImagen(ImageSource.camera);
+  }
+
+  _usarPredeterminadas(String path) async {
+    foto = await urlToFile('$path');
+    print(foto.path);
   }
 
   Future _procesarImagen(ImageSource origen) async {
@@ -542,5 +765,23 @@ class _AcopiadorPageState extends State<AcopiadorPage> {
       foto = File(pickedFile.path);
       print(foto.path);
     });
+  }
+
+  void mostrarSnackbar(String mensaje) {
+    final snackbar = SnackBar(
+        content: Text(mensaje), duration: Duration(milliseconds: 3000));
+    scaffoldkey.currentState.showSnackBar(snackbar);
+  }
+
+  Future<File> urlToFile(String imagePath) async {
+    var rng = new Random();
+    var bytes = await rootBundle.load('$imagePath');
+    String tempPath = (await getTemporaryDirectory()).path;
+    File file = new File('$tempPath' + (rng.nextInt(1000)).toString() + '.png');
+
+    await file.writeAsBytes(
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+
+    return file;
   }
 }

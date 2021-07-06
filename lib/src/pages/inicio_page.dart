@@ -8,12 +8,18 @@ import 'package:redciclapp/src/preferencias_usuario/preferencias_usuario.dart';
 import 'package:redciclapp/src/providers/acopio_provider.dart';
 import 'package:redciclapp/src/providers/ecoemprendimiento_provider.dart';
 import 'package:redciclapp/src/providers/recicladora_provider.dart';
+import 'package:redciclapp/src/utils/size_config.dart';
+import 'package:redciclapp/src/widgets/menu_widget.dart';
 
 class Inicio extends StatefulWidget {
   // const Inicio({Key key}) : super(key: key);
   @override
   _InicioState createState() => _InicioState();
 }
+
+Color colorRecicladora = Colors.white;
+Color colorEcoemprendimiento = Colors.white;
+Color colorAcopiador = Colors.white;
 
 class _InicioState extends State<Inicio> {
   final centroAcopioProvider = new CentroAcopioProvider();
@@ -22,7 +28,15 @@ class _InicioState extends State<Inicio> {
   List<Acopiador> _centrosAcopio = List<Acopiador>();
   List<Acopiador> _centrosAcopiofiltrado = List<Acopiador>();
 
+  List<Recicladora> _recicladora = List<Recicladora>();
+  List<Recicladora> _recicladorafiltrado = List<Recicladora>();
+
+  List<Ecoemprendimiento> _eco = List<Ecoemprendimiento>();
+  List<Ecoemprendimiento> _ecofiltrado = List<Ecoemprendimiento>();
+
   String contenedor = 'recicladoras';
+
+  final TextEditingController _filter = new TextEditingController();
 
   List<String> _localidades = [
     'Elegir Ciudad',
@@ -38,7 +52,42 @@ class _InicioState extends State<Inicio> {
     //'Tarija',
   ];
   String _opcionSeleccionada = 'Elegir Ciudad';
-  String _ciudad = '';
+  String _ciudad = 'Elegir Ciudad';
+
+  List<String> _zonasLpz = [
+    'Todas',
+    'Achumani',
+    'Alto obrajes',
+    'Bella vista',
+    'Bolognia',
+    'Calacoto',
+    'Centro',
+    'Cota Cota',
+    'Cotahuma',
+    'Cristo Rey',
+    'El Rosario',
+    'Garita de Lima',
+    'Irpavi',
+    'La Florida',
+    'Llojeta',
+    'Los Pinos',
+    'Miraflores',
+    'Obrajes',
+    'San Jorge',
+    'San Miguel',
+    'San Pedro',
+    'Seguencoma',
+    'Sopocachi',
+    'Tembladerani',
+    'Villa Armonía',
+    'Villa Copacabana',
+    'Villa Fátima',
+    'Villa San Antonio',
+    'Vino tinto',
+    'Otras',
+  ];
+  String _zonaElegida = 'Todas';
+  String _zona = 'Todas';
 
   final prefs = new PreferenciasUsuario();
   // var _busqueda = new TextEditingController();
@@ -47,25 +96,35 @@ class _InicioState extends State<Inicio> {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     // final bloc = Provider2.of(context);
+    _centrosAcopiofiltrado = _centrosAcopio;
+    _recicladorafiltrado = _recicladora;
+    _ecofiltrado = _eco;
 
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Color.fromRGBO(34, 181, 115, 1.0),
-          leading: Icon(Icons.search),
+          //leading: Icon(Icons.search),
           title: _searchBar(),
         ),
+        drawer: MenuWidget(),
         body: ListView(
           children: <Widget>[
             SizedBox(height: 20),
             _botones(),
             SizedBox(height: 10),
             _elegirciudad(),
+            _elegirzona(),
             _elegirContenedor(),
+            SizedBox(
+              height: 15,
+            ),
             _crearBoton(context),
           ],
-        ),
-        bottomNavigationBar: _bottonNavigationBar(context));
+        )
+        //bottomNavigationBar: _bottonNavigationBar(context)
+        );
   }
 
   Widget _elegirContenedor() {
@@ -92,6 +151,7 @@ class _InicioState extends State<Inicio> {
               height: 45,
               width: 45,
               decoration: BoxDecoration(
+                color: colorRecicladora,
                 image: DecorationImage(
                   image: AssetImage('assets/residuos.png'),
                 ),
@@ -100,6 +160,9 @@ class _InicioState extends State<Inicio> {
                   padding: EdgeInsets.all(0.0),
                   onPressed: () {
                     setState(() {
+                      colorRecicladora = Colors.green[900];
+                      colorAcopiador = Colors.white;
+                      colorEcoemprendimiento = Colors.white;
                       contenedor = 'recicladoras';
                     });
                   },
@@ -123,6 +186,7 @@ class _InicioState extends State<Inicio> {
               height: 45,
               width: 45,
               decoration: BoxDecoration(
+                color: colorEcoemprendimiento,
                 image: DecorationImage(
                   image: AssetImage('assets/eco_emprendimiento.png'),
                 ),
@@ -131,6 +195,9 @@ class _InicioState extends State<Inicio> {
                   padding: EdgeInsets.all(0.0),
                   onPressed: () {
                     setState(() {
+                      colorRecicladora = Colors.white;
+                      colorAcopiador = Colors.white;
+                      colorEcoemprendimiento = Colors.green[900];
                       contenedor = 'ecoemprendimientos';
                     });
                   },
@@ -154,6 +221,7 @@ class _InicioState extends State<Inicio> {
               height: 45,
               width: 45,
               decoration: BoxDecoration(
+                color: colorAcopiador,
                 image: DecorationImage(
                   image: AssetImage('assets/ubicacion.png'),
                 ),
@@ -162,6 +230,9 @@ class _InicioState extends State<Inicio> {
                   padding: EdgeInsets.all(0.0),
                   onPressed: () {
                     setState(() {
+                      colorRecicladora = Colors.white;
+                      colorAcopiador = Colors.green[900];
+                      colorEcoemprendimiento = Colors.white;
                       contenedor = 'acopiadores';
                     });
                   },
@@ -185,21 +256,53 @@ class _InicioState extends State<Inicio> {
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: TextField(
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: '¿Qué estas buscando?',
-            hintStyle: TextStyle(color: Colors.white),
-          ),
-          onChanged: (text) {
-            text = text.toLowerCase();
-            setState(() {
-              _centrosAcopiofiltrado = _centrosAcopio
-                  .where(
-                      (value) => value.querecibe.toLowerCase().contains(text))
-                  .toList();
-            });
-          },
-        ));
+            controller: _filter,
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: '¿Qué buscas? (Ej: Cartón, vidrio, PET, etc)',
+              hintStyle: TextStyle(color: Colors.white),
+            ),
+            onChanged: (text) {
+              if (_filter.text.isEmpty) {
+                setState(() {
+                  text = "";
+                  _centrosAcopiofiltrado = _centrosAcopio
+                      .where((value) => value.querecibe
+                          .toLowerCase()
+                          .contains(text.toLowerCase()))
+                      .toList();
+                  _recicladorafiltrado = _recicladora
+                      .where((value) => value.recolecta
+                          .toLowerCase()
+                          .contains(text.toLowerCase()))
+                      .toList();
+                  _ecofiltrado = _eco
+                      .where((value) => value.quenecesita
+                          .toLowerCase()
+                          .contains(text.toLowerCase()))
+                      .toList();
+                });
+              } else {
+                text = text.toLowerCase();
+                setState(() {
+                  _centrosAcopiofiltrado = _centrosAcopio
+                      .where((value) => value.querecibe
+                          .toLowerCase()
+                          .contains(text.toLowerCase()))
+                      .toList();
+                  _recicladorafiltrado = _recicladora
+                      .where((value) => value.recolecta
+                          .toLowerCase()
+                          .contains(text.toLowerCase()))
+                      .toList();
+                  _ecofiltrado = _eco
+                      .where((value) => value.quenecesita
+                          .toLowerCase()
+                          .contains(text.toLowerCase()))
+                      .toList();
+                });
+              }
+            }));
   }
 
   Widget _listadoAcopiadores() {
@@ -232,10 +335,21 @@ class _InicioState extends State<Inicio> {
                 builder: (BuildContext context,
                     AsyncSnapshot<List<Acopiador>> snapshot) {
                   if (snapshot.hasData) {
-                    _centrosAcopio = _centrosAcopiofiltrado = snapshot.data;
+                    _centrosAcopio = snapshot.data;
+
                     return ListView.builder(
                       itemBuilder: (context, i) {
-                        if (_centrosAcopiofiltrado[i].ciudad == _ciudad) {
+                        if (_centrosAcopiofiltrado[i].ciudad == _ciudad &&
+                            _centrosAcopiofiltrado[i].zona == _zona &&
+                            _centrosAcopiofiltrado[i].aprobacion ==
+                                'Aprobado') {
+                          return _itemCentroAcopio(
+                              context, _centrosAcopiofiltrado[i]);
+                        } else if (_centrosAcopiofiltrado[i].ciudad ==
+                                _ciudad &&
+                            _zona == 'Todas' &&
+                            _centrosAcopiofiltrado[i].aprobacion ==
+                                'Aprobado') {
                           return _itemCentroAcopio(
                               context, _centrosAcopiofiltrado[i]);
                         } else {
@@ -256,16 +370,17 @@ class _InicioState extends State<Inicio> {
     return (ListTile(
       leading: Image(
           image: AssetImage('assets/ubicacion.png'), height: 25, width: 25),
-      trailing:
-          IconButton(icon: Icon(Icons.arrow_forward_ios), onPressed: () {}),
+      trailing: IconButton(
+          icon: Icon(Icons.map),
+          onPressed: () =>
+              Navigator.pushNamed(context, 'mapa', arguments: acopio)),
       title: Text(
         '${acopio.nombre}',
         style: TextStyle(fontStyle: FontStyle.italic, fontSize: 18),
       ),
-      subtitle:
-          Text('${acopio.ciudad} - ${acopio.barrio} - ${acopio.querecibe}'),
+      subtitle: Text('${acopio.ciudad} - ${acopio.zona} - ${acopio.querecibe}'),
       onTap: () =>
-          Navigator.pushNamed(context, 'acopiadores', arguments: acopio),
+          Navigator.pushNamed(context, 'vistaacopiador', arguments: acopio),
     ));
   }
 
@@ -299,13 +414,19 @@ class _InicioState extends State<Inicio> {
                 builder: (BuildContext context,
                     AsyncSnapshot<List<Ecoemprendimiento>> snapshot) {
                   if (snapshot.hasData) {
-                    final ecoemprendimientos = snapshot.data;
+                    _eco = snapshot.data;
+                    // final ecoemprendimientos = snapshot.data;
                     return ListView.builder(
-                        itemCount: ecoemprendimientos.length,
+                        itemCount: _ecofiltrado.length,
                         itemBuilder: (context, i) {
-                          if (ecoemprendimientos[i].ciudad == _ciudad) {
+                          if (_ecofiltrado[i].ciudad == _ciudad &&
+                              _ecofiltrado[i].zona == _zona) {
                             return _itemEcoemprendimiento(
-                                context, ecoemprendimientos[i]);
+                                context, _ecofiltrado[i]);
+                          } else if (_ecofiltrado[i].ciudad == _ciudad &&
+                              _zona == 'Todas') {
+                            return _itemEcoemprendimiento(
+                                context, _ecofiltrado[i]);
                           } else {
                             return SizedBox();
                           }
@@ -335,19 +456,20 @@ class _InicioState extends State<Inicio> {
     print(eco.quenecesita);
     print(eco.capacidad); //ok
     print(eco.descripcion);
+
     return (ListTile(
       leading: Image(
           image: AssetImage('assets/eco_emprendimiento.png'),
           height: 25,
           width: 25),
-      trailing:
-          IconButton(icon: Icon(Icons.arrow_forward_ios), onPressed: () {}),
+      trailing: IconButton(icon: Icon(Icons.map), onPressed: () {}),
       title: Text(
         '${eco.nombre}',
         style: TextStyle(fontStyle: FontStyle.italic, fontSize: 18),
       ),
       subtitle: Text('${eco.ciudad} - ${eco.zona} - ${eco.capacidad}'),
-      onTap: () => Navigator.pushNamed(context, 'ecos', arguments: eco),
+      onTap: () => Navigator.pushNamed(context, 'vistaecoemprendimiento',
+          arguments: eco),
     ));
   }
 
@@ -381,12 +503,20 @@ class _InicioState extends State<Inicio> {
                 builder: (BuildContext context,
                     AsyncSnapshot<List<Recicladora>> snapshot) {
                   if (snapshot.hasData) {
-                    final recicladoras = snapshot.data;
+                    _recicladora = snapshot.data;
+
                     return ListView.builder(
-                        itemCount: recicladoras.length,
+                        itemCount: _recicladorafiltrado.length,
                         itemBuilder: (context, i) {
-                          if (recicladoras[i].departamento == _ciudad) {
-                            return _itemRecicladora(context, recicladoras[i]);
+                          if (_recicladorafiltrado[i].departamento == _ciudad &&
+                              _recicladorafiltrado[i].zona == _zona) {
+                            return _itemRecicladora(
+                                context, _recicladorafiltrado[i]);
+                          } else if (_recicladorafiltrado[i].departamento ==
+                                  _ciudad &&
+                              _zona == 'Todas') {
+                            return _itemRecicladora(
+                                context, _recicladorafiltrado[i]);
                           } else {
                             return SizedBox();
                           }
@@ -424,22 +554,14 @@ class _InicioState extends State<Inicio> {
         style: TextStyle(fontStyle: FontStyle.italic, fontSize: 18),
       ),
       subtitle: Text('${recicladora.departamento} - ${recicladora.zona}'),
-      onTap: () =>
-          Navigator.pushNamed(context, 'recicladoras', arguments: recicladora),
+      onTap: () => Navigator.pushNamed(context, 'vistarecicladora',
+          arguments: recicladora),
     ));
   }
 
   Widget _crearBoton(BuildContext context) {
     return Column(
       children: <Widget>[
-        Container(
-          margin: EdgeInsets.only(left: 30, top: 10, right: 30, bottom: 10),
-          child: Text(
-            'Nuestra base de datos es abierta y alimentada por toda la comunidad de Redcicla, para registrar nuevos datos en nuestra base de datos haz clic aquí:',
-            textAlign: TextAlign.justify,
-            style: TextStyle(fontSize: 15),
-          ),
-        ),
         SizedBox(height: 5),
         RaisedButton.icon(
           shape:
@@ -490,26 +612,62 @@ class _InicioState extends State<Inicio> {
     return lista;
   }
 
-  Widget _bottonNavigationBar(BuildContext context) {
-    return new Theme(
-      data: Theme.of(context).copyWith(
-        canvasColor: Color.fromRGBO(34, 181, 115, 1.0),
-        primaryColor: Colors.white,
-      ),
-      child: BottomNavigationBar(items: [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home, size: 30.0),
-          title: Container(),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.view_agenda, size: 30.0),
-          title: Container(),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.exit_to_app, size: 30.0),
-          title: Container(),
-        ),
-      ]),
+  Widget _elegirzona() {
+    return Row(
+      children: <Widget>[
+        SizedBox(width: 40.0),
+        Icon(Icons.place, color: Color.fromRGBO(34, 181, 115, 1.0)),
+        SizedBox(width: 30.0),
+        Expanded(
+          child: DropdownButton(
+            value: _zonaElegida,
+            style: TextStyle(
+                color: Color.fromRGBO(34, 181, 115, 1.0), fontSize: 16),
+            items: getOpcionesDropDown2(),
+            onChanged: (opt) {
+              setState(() {
+                _zonaElegida = opt;
+                _zona = _zonaElegida;
+              });
+            },
+          ),
+        )
+      ],
     );
   }
+
+  List<DropdownMenuItem<String>> getOpcionesDropDown2() {
+    List<DropdownMenuItem<String>> lista = new List();
+    _zonasLpz.forEach((zone) {
+      lista.add(DropdownMenuItem(
+        child: Text(zone),
+        value: zone,
+      ));
+    });
+
+    return lista;
+  }
+
+  // Widget _bottonNavigationBar(BuildContext context) {
+  //   return new Theme(
+  //     data: Theme.of(context).copyWith(
+  //       canvasColor: Color.fromRGBO(34, 181, 115, 1.0),
+  //       primaryColor: Colors.white,
+  //     ),
+  //     child: BottomNavigationBar(items: [
+  //       BottomNavigationBarItem(
+  //         icon: Icon(Icons.home, size: 30.0),
+  //         label: Container(),
+  //       ),
+  //       BottomNavigationBarItem(
+  //         icon: Icon(Icons.view_agenda, size: 30.0),
+  //         title: Container(),
+  //       ),
+  //       BottomNavigationBarItem(
+  //         icon: Icon(Icons.exit_to_app, size: 30.0),
+  //         title: Container(),
+  //       ),
+  //     ]),
+  //   );
+  // }
 }

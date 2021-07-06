@@ -19,6 +19,15 @@ class EcoemprendimientoProvider {
     return true;
   }
 
+  Future<bool> editarRevision(Ecoemprendimiento revision) async {
+    // final url = '$_url/revisiones.json?auth=${_prefs.token}';
+    final url = '$_url/ecoemprendimientos/${revision.id}.json';
+    final resp = await http.put(url, body: ecoemprendimientoToJson(revision));
+    final decodeData = json.decode(resp.body);
+    print(decodeData);
+    return true;
+  }
+
   Future<List<Ecoemprendimiento>> cargarEmprendimiento() async {
     //final url = '$_url/revisiones.json?auth=${_prefs.token}';
     final url = '$_url/ecoemprendimientos.json';
@@ -64,5 +73,13 @@ class EcoemprendimientoProvider {
     final respData = json.decode(resp.body);
     print(respData);
     return respData['secure_url'];
+  }
+
+  Future<int> borrarRegistro(String id) async {
+    final url = '$_url/ecoemprendimientos/$id.json';
+    final resp = await http.delete(url);
+    print(json.decode(resp.body));
+
+    return 1;
   }
 }

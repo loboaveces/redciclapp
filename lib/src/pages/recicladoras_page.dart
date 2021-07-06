@@ -1,13 +1,20 @@
 // import 'dart:html';
 
 import 'dart:io';
+import 'dart:math';
+
+import 'package:flutter/services.dart';
+
+import 'package:path_provider/path_provider.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:redciclapp/src/providers/recicladora_provider.dart';
 import 'package:redciclapp/src/utils/utils.dart';
 import 'package:flutter/material.dart';
+
 import 'package:redciclapp/src/models/recicladora_model.dart';
 import 'package:redciclapp/src/preferencias_usuario/preferencias_usuario.dart';
+import 'package:redciclapp/src/widgets/menu_widget.dart';
 //
 
 class RecicladoraPage extends StatefulWidget {
@@ -76,16 +83,33 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
   ];
   String _zonaElegida = 'Elegir Zona';
 
+  bool _otraZona = false;
+
   File foto;
+  bool _foto1 = false;
+  bool _foto2 = false;
+  bool _foto3 = false;
+  bool _foto4 = false;
 
   final formkey = GlobalKey<FormState>();
+  final scaffoldkey = GlobalKey<ScaffoldState>();
   final recicladoraProvider = new RecicladoraProvider();
+  bool _guardando = false;
 
+  //Modelo de Recicladora, la creación de la recicladora
   Recicladora recicladora = new Recicladora();
 
   @override
   Widget build(BuildContext context) {
+    final Recicladora recData = ModalRoute.of(context).settings.arguments;
+    if (recData != null) {
+      recicladora = recData;
+      _opcionSeleccionada = recData.departamento;
+      _zonaElegida = recData.zona;
+    }
+
     return Scaffold(
+      key: scaffoldkey,
       appBar: AppBar(
           centerTitle: false,
           backgroundColor: Color.fromRGBO(34, 181, 115, 1.0),
@@ -101,6 +125,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
               onPressed: _tomarFoto,
             ),
           ]),
+      drawer: MenuWidget(),
       body: SingleChildScrollView(
           child: Container(
               padding: EdgeInsets.all(15.0),
@@ -110,6 +135,12 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       _mostrarFoto(),
+                      _mensajefotos(),
+                      _fotosPredeterminadas(),
+
+                      SizedBox(
+                        height: 20.0,
+                      ),
                       _nombreCompleto(),
                       SizedBox(
                         height: 30.0,
@@ -127,7 +158,11 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
                       ),
 //horarios
 // dias de la semana
-
+                      _elegirzona(),
+                      _zona(),
+                      SizedBox(
+                        height: 30.0,
+                      ),
                       _celular(),
                       SizedBox(
                         height: 30.0,
@@ -137,11 +172,6 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
                       //   height: 30.0,
                       // ),
                       _queRecolecta(),
-                      SizedBox(
-                        height: 30.0,
-                      ),
-                      _elegirzona(),
-
                       SizedBox(
                         height: 30.0,
                       ),
@@ -162,7 +192,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
                         height: 30.0,
                       ),
 
-                      _crearBoton(context),
+                      _crearBoton(context, recData),
                     ],
                   )))),
     );
@@ -174,6 +204,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Sólo números, sin agregar +591',
         labelText: "Nro de celular:",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -201,6 +232,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Nombre completo',
         labelText: "Nombre del reciclador/a ",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -228,6 +260,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: '¿De qué hora a qué hora?',
         labelText: "¿En que horarios recolecta? ",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -282,6 +315,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Los 3 residuos principales que recolecta',
         labelText: "¿Que residuos recolecta?",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -309,6 +343,7 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Las 2 calles principales que recorre',
         labelText: "Calles que recorre:",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -330,30 +365,35 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
   }
 
   // Widget _zona() {
-  //   return TextFormField(
-  //     initialValue: recicladora.zona,
-  //     cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
-  //     textCapitalization: TextCapitalization.sentences,
-  //     decoration: InputDecoration(
-  //       contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
-  //       labelText: "¿Qué zona recorre?",
-  //       labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
-  //       icon: Icon(
-  //         Icons.location_city,
-  //         color: Color.fromRGBO(34, 181, 115, 1.0),
+  //   print(_otraZona);
+  //   if (_otraZona == true) {
+  //     return TextFormField(
+  //       initialValue: recicladora.zona,
+  //       cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
+  //       textCapitalization: TextCapitalization.sentences,
+  //       decoration: InputDecoration(
+  //         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+  //         labelText: "¿Qué zona recorre?",
+  //         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
+  //         icon: Icon(
+  //           Icons.location_city,
+  //           color: Color.fromRGBO(34, 181, 115, 1.0),
+  //         ),
+  //         enabledBorder: UnderlineInputBorder(
+  //           borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+  //         ),
+  //         focusedBorder: UnderlineInputBorder(
+  //           borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+  //         ),
+  //         border: UnderlineInputBorder(
+  //           borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
+  //         ),
   //       ),
-  //       enabledBorder: UnderlineInputBorder(
-  //         borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-  //       ),
-  //       focusedBorder: UnderlineInputBorder(
-  //         borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-  //       ),
-  //       border: UnderlineInputBorder(
-  //         borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-  //       ),
-  //     ),
-  //     onSaved: (value) => recicladora.zona = value,
-  //   );
+  //       onSaved: (value) => recicladora.zona = value,
+  //     );
+  //   } else {
+  //     return SizedBox();
+  //   }
   // }
 
   Widget _detalles() {
@@ -363,7 +403,10 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
-        labelText: "Detalles o comentarios",
+        helperMaxLines: 2,
+        helperText:
+            'Cualquier detalle que consideres relevante sobre esta recicladora',
+        labelText: "Detalles adicionales",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
           Icons.comment,
@@ -428,10 +471,15 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
             style: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
             items: getOpcionesDropDownZ(),
             onChanged: (opt) {
-              if (_zonaElegida == "otra") {
-                _zona();
+              if (opt == 'Otras') {
+                setState(() {
+                  _otraZona = true;
+                  _zonaElegida = opt;
+                });
+                print(_otraZona);
               } else {
                 setState(() {
+                  _otraZona = false;
                   _zonaElegida = opt;
                   recicladora.zona = _zonaElegida;
                 });
@@ -456,37 +504,54 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
   }
 
   Widget _zona() {
-    return TextFormField(
-      initialValue: recicladora.zona,
-      cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
-      textCapitalization: TextCapitalization.sentences,
-      decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
-          labelText: "¿Qué zona es?"),
-      onSaved: (value) => recicladora.zona = value,
-    );
+    if (_otraZona) {
+      return TextFormField(
+        initialValue: 'Otras',
+        cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+            labelText: "Escribe aquí el nombre de la zona:"),
+        onSaved: (value) => recicladora.zona = value,
+      );
+    } else {
+      return SizedBox();
+    }
   }
 
-  Widget _crearBoton(BuildContext context) {
+  Widget _crearBoton(BuildContext context, Recicladora recdata) {
     return RaisedButton.icon(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
       color: Color.fromRGBO(34, 181, 115, 1.0),
       textColor: Colors.white,
-      onPressed: () => _submit(context),
+      onPressed: () {
+        if (_guardando == false) {
+          _submit(context, recdata);
+        }
+      },
       icon: Icon(Icons.save),
       label: Text('Guardar'),
     );
   }
 
-  void _submit(BuildContext context) async {
+  void _submit(BuildContext context, Recicladora data) async {
     if (_opcionSeleccionada != 'Elegir') {
       formkey.currentState.validate();
       formkey.currentState.save();
       //Con esto vamos a permitir la edicion de entradas:
-      recicladora.correo = prefs.email;
-      // setState(() {
-      //   _guardando = true;
-      // });
+      if (data != null) {
+        recicladora.correo = data.correo;
+      } else {
+        recicladora.correo = prefs.email;
+      }
+
+      //Para controlar los registros reportados
+      recicladora.tienedenuncia = 'No';
+      recicladora.detalledenuncia = '';
+
+      setState(() {
+        _guardando = true;
+      });
 
       if (foto != null) {
         recicladora.fotourl = await recicladoraProvider.subirimagen(foto);
@@ -494,8 +559,15 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
 
       _mensajes(context);
       recicladora.fecha = DateTime.now().toString();
-
-      recicladoraProvider.crearRevision(recicladora);
+      if (recicladora.id == null) {
+        recicladoraProvider.crearRevision(recicladora);
+      } else {
+        recicladoraProvider.editarRevision(recicladora);
+      }
+      mostrarSnackbar("Registro Guardado ");
+      setState(() {
+        _guardando = false;
+      });
     } else {
       mostrarAlerta(context, 'Debes elegir una ciudad');
     }
@@ -514,24 +586,106 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                    'Gracias, se agregó un/a nuevo/a reciclador/a a la base de datos'),
+                    'Gracias, se agregaron los cambios del/la reciclador/a en la base de datos'),
                 Image(image: AssetImage('assets/registro.png')),
               ],
             ),
             actions: <Widget>[
               FlatButton(
                 child: Text('OK'),
-                onPressed: () => Navigator.pushNamed(context, 'home'),
+                onPressed: () => Navigator.pushNamed(context, 'inicio'),
               )
             ],
           );
         });
   }
 
+  Widget _mensajefotos() {
+    return Container(
+        margin: EdgeInsets.all(10.0),
+        child: Text(
+          "Para cargar una foto utiliza los botones de arriba a la derecha, si no tienes una foto puedes hacer clic en alguna de las siguientes fotos predeterminadas.",
+          style: TextStyle(fontSize: 14.0, fontStyle: FontStyle.italic),
+        ));
+  }
+
+  Widget _fotosPredeterminadas() {
+    return Container(
+      height: 80.0,
+      decoration: BoxDecoration(),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = true;
+                _foto2 = false;
+                _foto3 = false;
+                _foto4 = false;
+                _usarPredeterminadas('assets/carton.jpeg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/carton.jpeg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = true;
+                _foto3 = false;
+                _foto4 = false;
+                _usarPredeterminadas('assets/vidrio.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/vidrio.jpg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = false;
+                _foto3 = true;
+                _foto4 = false;
+                _usarPredeterminadas('assets/plastic.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/plastic.jpg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = false;
+                _foto3 = false;
+                _foto4 = true;
+                _usarPredeterminadas('assets/latas.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/latas.jpg'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _mostrarFoto() {
     if (recicladora.fotourl != null) {
-      return Container();
-      //Falta implementar esto
+      return Container(
+          child: FadeInImage(
+              placeholder: AssetImage('assets/barline_loading.gif'),
+              image: NetworkImage(recicladora.fotourl)));
     } else {
       if (foto != null) {
         return Image.file(
@@ -540,7 +694,22 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
           height: 300.0,
         );
       }
-      return Image.asset('assets/no-image.png');
+      if (_foto1 == true) {
+        setState(() {});
+        return Image.asset('assets/carton.jpeg');
+      } else if (_foto2 == true) {
+        setState(() {});
+        return Image.asset('assets/vidrio.jpg');
+      } else if (_foto3 == true) {
+        setState(() {});
+        return Image.asset('assets/plastic.jpg');
+      } else if (_foto4 == true) {
+        setState(() {});
+        return Image.asset('assets/latas.jpg');
+      } else {
+        setState(() {});
+        return Image.asset('assets/no-image.png');
+      }
     }
   }
 
@@ -550,6 +719,11 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
 
   _tomarFoto() async {
     _procesarImagen(ImageSource.camera);
+  }
+
+  _usarPredeterminadas(String path) async {
+    foto = await urlToFile('$path');
+    print(foto.path);
   }
 
   Future _procesarImagen(ImageSource origen) async {
@@ -563,5 +737,23 @@ class _RecicladoraPageState extends State<RecicladoraPage> {
       foto = File(pickedFile.path);
       print(foto.path);
     });
+  }
+
+  void mostrarSnackbar(String mensaje) {
+    final snackbar = SnackBar(
+        content: Text(mensaje), duration: Duration(milliseconds: 3000));
+    scaffoldkey.currentState.showSnackBar(snackbar);
+  }
+
+  Future<File> urlToFile(String imagePath) async {
+    var rng = new Random();
+    var bytes = await rootBundle.load('$imagePath');
+    String tempPath = (await getTemporaryDirectory()).path;
+    File file = new File('$tempPath' + (rng.nextInt(100)).toString() + '.png');
+
+    await file.writeAsBytes(
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+
+    return file;
   }
 }

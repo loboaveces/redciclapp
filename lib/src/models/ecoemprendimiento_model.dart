@@ -28,6 +28,8 @@ class Ecoemprendimiento {
     this.descripcion,
     this.correo,
     this.horarios,
+    this.tienedenuncia,
+    this.detalledenuncia,
   });
 
   String id;
@@ -46,6 +48,8 @@ class Ecoemprendimiento {
   String descripcion;
   String correo;
   String horarios;
+  String tienedenuncia;
+  String detalledenuncia;
 
   factory Ecoemprendimiento.fromJson(Map<String, dynamic> json) =>
       Ecoemprendimiento(
@@ -65,10 +69,12 @@ class Ecoemprendimiento {
         descripcion: json["descripcion"],
         correo: json["correo"],
         horarios: json["horarios"],
+        tienedenuncia: json["tienedenuncia"],
+        detalledenuncia: json["detalledenuncia"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
+        //"id": id,
         "celular": celular,
         "ciudad": ciudad,
         "detalles": detalles,
@@ -84,5 +90,7 @@ class Ecoemprendimiento {
         "descripcion": descripcion,
         "correo": correo,
         "horarios": horarios,
+        "tienedenuncia": tienedenuncia,
+        "detalledenuncia": detalledenuncia,
       };
 }

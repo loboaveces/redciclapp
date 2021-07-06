@@ -1,3 +1,6 @@
+// import 'dart:io';
+import 'package:redciclapp/src/pages/enrutador_page.dart';
+import 'package:redciclapp/src/pages/verifica_page.dart';
 import 'package:redciclapp/src/states/current_user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,18 +19,19 @@ class _SigninPageState extends State<SigninPage> {
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _confirmPasswordController = TextEditingController();
 
-  void _signUpUser(String email, String password, BuildContext context) async {
+  void _signUp(String email, String password, BuildContext context) async {
     CurrentUser _currentUser = Provider.of<CurrentUser>(context, listen: false);
 
     try {
       if (await _currentUser.signUpUser(email, password)) {
+        _verificar(email, password, _currentUser);
+      } else {
         Scaffold.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text("Cuenta creada, ahora inicia sesión, redirigiendo..."),
+              content: Text(
+                  "Cuenta de correo ya registrada, prueba inciando sesión"),
               duration: Duration(seconds: 4)),
         );
-        Navigator.pushReplacementNamed(context, 'login');
       }
     } catch (e) {
       print(e);
@@ -43,6 +47,21 @@ class _SigninPageState extends State<SigninPage> {
         _loginform(context),
       ],
     ));
+  }
+
+  void _verificar(
+      String email, String password, CurrentUser _currentUser) async {
+    try {
+      if (await _currentUser.verifica(email, password)) {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (BuildContext context) => RootPage()));
+      } else {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (BuildContext context) => VerificaPage()));
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   Widget _loginform(BuildContext context) {
@@ -104,6 +123,9 @@ class _SigninPageState extends State<SigninPage> {
                   color: Color.fromRGBO(34, 181, 115, 1.0)),
               hintText: 'ejemplo@email.com',
               labelText: 'Correo electrónico',
+              helperText:
+                  'Debe ser una cuenta de correo válida a la que tengas acceso',
+              helperMaxLines: 4,
               counterText: snapshot.data,
               errorText: snapshot.error,
               enabledBorder: UnderlineInputBorder(
@@ -142,6 +164,9 @@ class _SigninPageState extends State<SigninPage> {
               // hintText: 'Mínimo 1 letra mayúscula
               // '/n' Mínimo 1 letra minúscula '/n' Mínimo 1 número '/n' Mínimo 1 caracter especial /n Caracteres permitidos: ! @ # & * ~ ',
               labelText: 'Contraseña',
+              helperText:
+                  'La contraseña debe tener mayúsculas, minúsculas, números y algún signo alfanumérico ',
+              helperMaxLines: 4,
               counterText: snapshot.data,
               errorText: snapshot.error,
               enabledBorder: UnderlineInputBorder(
@@ -179,6 +204,8 @@ class _SigninPageState extends State<SigninPage> {
               // hintText: 'Mínimo 1 letra mayúscula
               // '/n' Mínimo 1 letra minúscula '/n' Mínimo 1 número '/n' Mínimo 1 caracter especial /n Caracteres permitidos: ! @ # & * ~ ',
               labelText: 'Repite la Contraseña',
+              helperText: 'Repite una vez más la contraseña que escogiste',
+              helperMaxLines: 4,
               counterText: snapshot.data,
               errorText: snapshot.error,
               enabledBorder: UnderlineInputBorder(
@@ -220,7 +247,7 @@ class _SigninPageState extends State<SigninPage> {
           onPressed: () {
             if (_passwordController.text.length >= 6) {
               if (_passwordController.text == _confirmPasswordController.text) {
-                _signUpUser(
+                _signUp(
                     _emailController.text, _passwordController.text, context);
               } else {
                 Scaffold.of(context).showSnackBar(

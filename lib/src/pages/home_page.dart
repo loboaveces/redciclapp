@@ -1,35 +1,44 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:redciclapp/src/utils/size_config.dart';
+import 'package:redciclapp/src/widgets/menu_widget.dart';
+
+double _controlVertical = SizeConfig.devicePixelHeight;
+double _controlHorizontal = SizeConfig.devicePixelWidth;
+double _posicionLogo = _controlHorizontal / 10;
+double _posicionFondo = _controlVertical / 5;
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Color.fromRGBO(34, 181, 115, 1.0),
-            title: Text(
-              'RedCicla: Mapeo de Datos',
-              style: TextStyle(
-                fontSize: 15,
-              ),
+        appBar: AppBar(
+          backgroundColor: Color.fromRGBO(34, 181, 115, 1.0),
+          title: Text(
+            'Mapeo de Datos',
+            style: TextStyle(
+              fontSize: 16,
             ),
           ),
-          body: Stack(
-            children: <Widget>[
-              _fondoApp(),
-              SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    SizedBox(height: 220),
-                    _botonesRedondeados(context),
-                  ],
-                ),
-              )
-            ],
-          ),
-          bottomNavigationBar: _bottonNavigationBar(context)),
+        ),
+        drawer: MenuWidget(),
+        body: Stack(
+          children: <Widget>[
+            _fondoApp(),
+            SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(height: 220),
+                  _botonesRedondeados(context),
+                ],
+              ),
+            )
+          ],
+        ),
+        //bottomNavigationBar: _bottonNavigationBar(context)
+      ),
     );
   }
 
@@ -61,53 +70,56 @@ class HomePage extends StatelessWidget {
     return Stack(
       children: <Widget>[
         gradiente,
-        Positioned(top: 250, left: 130, child: fondo),
+        Positioned(top: _posicionFondo, left: _posicionLogo, child: fondo),
         Positioned(
           top: 20,
-          left: 120,
+          left: _posicionLogo,
           child: logo,
         ),
       ],
     );
   }
 
-  Widget _bottonNavigationBar(BuildContext context) {
-    return new Theme(
-      data: Theme.of(context).copyWith(
-        canvasColor: Color.fromRGBO(34, 181, 115, 1.0),
-        primaryColor: Colors.white,
-      ),
-      child: BottomNavigationBar(items: [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home, size: 30.0),
-          title: Container(
-            child: new FlatButton(
-                padding: EdgeInsets.all(0.0),
-                onPressed: () => Navigator.pushNamed(context, 'home'),
-                child: null),
-          ),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search, size: 30.0),
-          title: Container(
-            child: new FlatButton(
-                padding: EdgeInsets.all(0.0),
-                onPressed: () => Navigator.pushNamed(context, 'inicio'),
-                child: null),
-          ),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.exit_to_app, size: 30.0),
-          title: Container(
-            child: new FlatButton(
-                padding: EdgeInsets.all(0.0), onPressed: () {}, child: null),
-          ),
-        ),
-      ]),
-    );
-  }
+  // Widget _bottonNavigationBar(BuildContext context) {
+  //   return new Theme(
+  //     data: Theme.of(context).copyWith(
+  //       canvasColor: Color.fromRGBO(34, 181, 115, 1.0),
+  //       primaryColor: Colors.white,
+  //     ),
+  //     child: BottomNavigationBar(items: [
+  //       BottomNavigationBarItem(
+  //         icon: Icon(Icons.home, size: 30.0),
+  //         title: Container(
+  //           child: new FlatButton(
+  //               padding: EdgeInsets.all(0.0),
+  //               onPressed: () {},
+  //               //onPressed: () => Navigator.pushNamed(context, 'home'),
+  //               child: null),
+  //         ),
+  //       ),
+  //       BottomNavigationBarItem(
+  //         icon: Icon(Icons.search, size: 30.0),
+  //         title: Container(
+  //           child: new FlatButton(
+  //               padding: EdgeInsets.all(0.0),
+  //               onPressed: () {},
+  //               //onPressed: () => Navigator.pushNamed(context, 'inicio'),
+  //               child: null),
+  //         ),
+  //       ),
+  //       BottomNavigationBarItem(
+  //         icon: Icon(Icons.exit_to_app, size: 30.0),
+  //         title: Container(
+  //           child: new FlatButton(
+  //               padding: EdgeInsets.all(0.0), onPressed: () {}, child: null),
+  //         ),
+  //       ),
+  //     ]),
+  //   );
+  // }
 
   Widget _botonesRedondeados(BuildContext context) {
+    print('POSISCION LOGO: $_posicionLogo');
     return Table(
       children: [
         TableRow(children: [
@@ -120,7 +132,7 @@ class HomePage extends StatelessWidget {
           _crearBotonRedondeado('Eco \nemprendimientos',
               'eco_emprendimiento.png', context, 'ecos'),
           _crearBotonRedondeado(
-              'A cerca de \n Redcicla', 'icono.png', context, 'home'),
+              'Acerca de \n Redcicla', 'icono.png', context, 'acercade'),
         ]),
       ],
     );

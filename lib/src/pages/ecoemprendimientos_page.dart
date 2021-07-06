@@ -1,6 +1,7 @@
 // import 'dart:html';
 
 import 'dart:async';
+import 'dart:math';
 // import 'dart:js';
 
 import 'package:flutter/material.dart';
@@ -10,11 +11,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:redciclapp/src/providers/ecoemprendimiento_provider.dart';
 import 'package:redciclapp/src/models/ecoemprendimiento_model.dart';
 import 'package:redciclapp/src/preferencias_usuario/preferencias_usuario.dart';
 import 'package:redciclapp/src/utils/utils.dart';
+import 'package:redciclapp/src/widgets/menu_widget.dart';
 
 class EcoemprendimientoPage extends StatefulWidget {
   EcoemprendimientoPage({Key key}) : super(key: key);
@@ -41,7 +44,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
     'Elegir Ciudad',
     // 'Beni',
     // 'Cochabamba',
-    // 'El Alto',
+    'El Alto',
     'La Paz',
     // 'Oruro',
     // 'Pando',
@@ -84,6 +87,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
     'Vino tinto',
     'Otras',
   ];
+
   String _zonaElegida = 'Elegir Zona';
 
   String _opcionSeleccionada = 'Elegir Ciudad';
@@ -101,19 +105,35 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
   // bool _guardando = false;
 
   File foto;
+  bool _foto1 = false;
+  bool _foto2 = false;
+  bool _foto3 = false;
+  bool _foto4 = false;
+
+  bool _otraZona = false;
 
   final formkey = GlobalKey<FormState>();
+  final scaffoldkey = GlobalKey<ScaffoldState>();
   final ecoemprendimientoProvider = new EcoemprendimientoProvider();
+  bool _guardando = false;
 
   Ecoemprendimiento ecoemprendimiento = new Ecoemprendimiento();
 
   @override
   Widget build(BuildContext context) {
+    final Ecoemprendimiento recData = ModalRoute.of(context).settings.arguments;
+    if (recData != null) {
+      ecoemprendimiento = recData;
+      _opcionSeleccionada = recData.ciudad;
+      _zonaElegida = recData.zona;
+    }
+
     return Scaffold(
+      key: scaffoldkey,
       appBar: AppBar(
           centerTitle: false,
           backgroundColor: Color.fromRGBO(34, 181, 115, 1.0),
-          title: Text('Añadir Ecoemprendimiento',
+          title: Text('Nuevo Ecoemprendimien',
               style: TextStyle(color: Colors.white)),
           actions: <Widget>[
             IconButton(
@@ -125,6 +145,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
               onPressed: _tomarFoto,
             ),
           ]),
+      drawer: MenuWidget(),
       body: SingleChildScrollView(
           child: Container(
               padding: EdgeInsets.all(15.0),
@@ -134,6 +155,11 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       _mostrarFoto(),
+                      _mensajefotos(),
+                      _fotosPredeterminadas(),
+                      SizedBox(
+                        height: 20.0,
+                      ),
                       _nombreCompleto(),
                       SizedBox(
                         height: 30.0,
@@ -151,7 +177,11 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
                       ),
 //horarios
 // dias de la semana
-
+                      _elegirzona(),
+                      _zona(),
+                      SizedBox(
+                        height: 30.0,
+                      ),
                       _celular(),
                       SizedBox(
                         height: 30.0,
@@ -164,11 +194,6 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
                       SizedBox(
                         height: 30.0,
                       ),
-                      _elegirzona(),
-                      SizedBox(
-                        height: 30.0,
-                      ),
-
                       _direccion(),
                       SizedBox(
                         height: 30.0,
@@ -190,7 +215,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
                       SizedBox(
                         height: 30.0,
                       ),
-                      _crearBoton(context),
+                      _crearBoton(context, recData),
                     ],
                   )))),
     );
@@ -258,8 +283,8 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
   }
 
   _getCurrentLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position =
+        await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
       _currentPosition = position;
     });
@@ -286,6 +311,8 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
       cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperMaxLines: 2,
+        helperText: 'Escribe sólo un número de celular sin agregar +591',
         labelText: "Nro de teléfono o celular:",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -367,6 +394,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        helperText: 'Materiales y/o residuo/s que reutilizan (máximo 3)',
         labelText: "¿Qué materiales necesitan?",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -394,6 +422,9 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+        hintMaxLines: 2,
+        helperText:
+            'Dónde podran encontrarles y dejar los \n materiales y/o residuos',
         labelText: "Escribe la dirección",
         labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
         icon: Icon(
@@ -415,30 +446,19 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
   }
 
   Widget _zona() {
-    return TextFormField(
-      initialValue: ecoemprendimiento.zona,
-      cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
-      textCapitalization: TextCapitalization.sentences,
-      decoration: InputDecoration(
-        contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
-        labelText: "¿En qué zona se encuentra?",
-        labelStyle: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        icon: Icon(
-          Icons.location_city,
-          color: Color.fromRGBO(34, 181, 115, 1.0),
-        ),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        ),
-        border: UnderlineInputBorder(
-          borderSide: BorderSide(color: Color.fromRGBO(34, 181, 115, 1.0)),
-        ),
-      ),
-      onSaved: (value) => ecoemprendimiento.zona = value,
-    );
+    if (_otraZona) {
+      return TextFormField(
+        initialValue: 'Otras',
+        cursorColor: Color.fromRGBO(34, 181, 115, 1.0),
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+            labelText: "Escribe aquí el nombre de la zona:"),
+        onSaved: (value) => ecoemprendimiento.zona = value,
+      );
+    } else {
+      return SizedBox();
+    }
   }
 
   Widget _descripcion() {
@@ -540,12 +560,16 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
           child: DropdownButton(
             value: _zonaElegida,
             style: TextStyle(color: Color.fromRGBO(34, 181, 115, 1.0)),
-            items: getOpcionesDropDown(),
+            items: getOpcionesDropDown2(),
             onChanged: (opt) {
-              if (_zonaElegida == "otra") {
-                _zona();
+              if (opt == "Otras") {
+                setState(() {
+                  _otraZona = true;
+                  _zonaElegida = opt;
+                });
               } else {
                 setState(() {
+                  _otraZona = false;
                   _zonaElegida = opt;
                   ecoemprendimiento.zona = _zonaElegida;
                 });
@@ -609,41 +633,39 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
 
 //Fin Capacidad
 
-  Widget _crearBoton(BuildContext context) {
+  Widget _crearBoton(BuildContext context, Ecoemprendimiento data) {
     return RaisedButton.icon(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
       color: Color.fromRGBO(34, 181, 115, 1.0),
       textColor: Colors.white,
-      onPressed: () => _submit(context),
+      onPressed: () {
+        if (_guardando == false) {
+          _submit(context, data);
+        }
+      },
       icon: Icon(Icons.save),
       label: Text('Guardar'),
     );
   }
 
-  // Widget _botonUbicacion(BuildContext context) {
-  //   return RaisedButton.icon(
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-  //     color: Colors.red,
-  //     textColor: Colors.white,
-  //     onPressed: () {
-  //       _checkLocationOperational();
-  //       _requestPermission();
-  //       _mapa();
-  //     },
-  //     icon: Icon(Icons.map),
-  //     label: Text('Mapear la ubicación (GPS)'),
-  //   );
-  // }
-
-  void _submit(BuildContext context) async {
+  void _submit(BuildContext context, Ecoemprendimiento data) async {
     if (_opcionSeleccionada != 'Elegir') {
       formkey.currentState.validate();
       formkey.currentState.save();
       //Con esto vamos a permitir la edicion de entradas:
-      ecoemprendimiento.correo = prefs.email;
-      // setState(() {
-      //   _guardando = true;
-      // });
+      if (data != null) {
+        ecoemprendimiento.correo = data.correo;
+      } else {
+        ecoemprendimiento.correo = prefs.email;
+      }
+
+      //Para controlar los registros reportados
+      ecoemprendimiento.tienedenuncia = 'No';
+      ecoemprendimiento.detalledenuncia = '';
+
+      setState(() {
+        _guardando = true;
+      });
 
       if (foto != null) {
         ecoemprendimiento.fotourl =
@@ -653,7 +675,15 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
       _mensajes(context);
       ecoemprendimiento.fecha = DateTime.now().toString();
 
-      ecoemprendimientoProvider.crearRevision(ecoemprendimiento);
+      if (ecoemprendimiento.id == null) {
+        ecoemprendimientoProvider.crearRevision(ecoemprendimiento);
+      } else {
+        ecoemprendimientoProvider.editarRevision(ecoemprendimiento);
+      }
+      mostrarSnackbar("Registro Guardado ");
+      setState(() {
+        _guardando = false;
+      });
     } else {
       mostrarAlerta(context, 'Debes elegir una ciudad');
     }
@@ -672,7 +702,7 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                    'Gracias, se agregó un nuevo punto de acopio a la base de datos'),
+                    'Gracias, se agregaron los cambios del ecoemprendimiento en la base de datos'),
                 Image(image: AssetImage('assets/registro.png')),
               ],
             ),
@@ -686,10 +716,92 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
         });
   }
 
+  Widget _mensajefotos() {
+    return Container(
+        margin: EdgeInsets.all(10.0),
+        child: Text(
+          "Carga el logo de tu negocio/empresa utilizando los botones de arriba a la derecha, si no tienes una foto puedes hacer clic en alguna de las siguientes fotos predeterminadas.",
+          style: TextStyle(fontSize: 14.0, fontStyle: FontStyle.italic),
+        ));
+  }
+
+  Widget _fotosPredeterminadas() {
+    return Container(
+      height: 80.0,
+      decoration: BoxDecoration(),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = true;
+                _foto2 = false;
+                _foto3 = false;
+                _foto4 = false;
+                _usarPredeterminadas('assets/carton.jpeg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/carton.jpeg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = true;
+                _foto3 = false;
+                _foto4 = false;
+                _usarPredeterminadas('assets/vidrio.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/vidrio.jpg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = false;
+                _foto3 = true;
+                _foto4 = false;
+                _usarPredeterminadas('assets/plastic.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/plastic.jpg'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _foto1 = false;
+                _foto2 = false;
+                _foto3 = false;
+                _foto4 = true;
+                _usarPredeterminadas('assets/latas.jpg');
+              });
+            },
+            child: Container(
+              height: 70.0,
+              child: Image.asset('assets/latas.jpg'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _mostrarFoto() {
     if (ecoemprendimiento.fotourl != null) {
-      return Container();
-      //Falta implementar esto
+      return Container(
+          child: FadeInImage(
+              placeholder: AssetImage('assets/barline_loading.gif'),
+              image: NetworkImage(ecoemprendimiento.fotourl)));
     } else {
       if (foto != null) {
         return Image.file(
@@ -698,7 +810,23 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
           height: 300.0,
         );
       }
-      return Image.asset('assets/no-image.png');
+
+      if (_foto1 == true) {
+        setState(() {});
+        return Image.asset('assets/carton.jpeg');
+      } else if (_foto2 == true) {
+        setState(() {});
+        return Image.asset('assets/vidrio.jpg');
+      } else if (_foto3 == true) {
+        setState(() {});
+        return Image.asset('assets/plastic.jpg');
+      } else if (_foto4 == true) {
+        setState(() {});
+        return Image.asset('assets/latas.jpg');
+      } else {
+        setState(() {});
+        return Image.asset('assets/no-image.png');
+      }
     }
   }
 
@@ -708,6 +836,11 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
 
   _tomarFoto() async {
     _procesarImagen(ImageSource.camera);
+  }
+
+  _usarPredeterminadas(String path) async {
+    foto = await urlToFile('$path');
+    print(foto.path);
   }
 
   Future _procesarImagen(ImageSource origen) async {
@@ -721,5 +854,23 @@ class _EcoemprendimientoPageState extends State<EcoemprendimientoPage> {
       foto = File(pickedFile.path);
       print(foto.path);
     });
+  }
+
+  void mostrarSnackbar(String mensaje) {
+    final snackbar = SnackBar(
+        content: Text(mensaje), duration: Duration(milliseconds: 3000));
+    scaffoldkey.currentState.showSnackBar(snackbar);
+  }
+
+  Future<File> urlToFile(String imagePath) async {
+    var rng = new Random();
+    var bytes = await rootBundle.load('$imagePath');
+    String tempPath = (await getTemporaryDirectory()).path;
+    File file = new File('$tempPath' + (rng.nextInt(100)).toString() + '.png');
+
+    await file.writeAsBytes(
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+
+    return file;
   }
 }

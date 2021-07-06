@@ -16,3 +16,20 @@ void mostrarAlerta(BuildContext context, String mensaje) {
         );
       });
 }
+
+void mostrarAlerta2(BuildContext context, String mensaje) {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Configuración'),
+          content: Text(mensaje),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('ok'),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          ],
+        );
+      });
+}
