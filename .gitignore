@@ -49,6 +49,8 @@ lib/src/states
 lib/src/providers
 android/key_properties
 lib/src/preferencias_usuario
+android/
+ios/
 
 key.properties
 notas
