@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:redciclapp/src/bloc/provider2.dart';
+// Paginas con las que se comunica
 import 'package:redciclapp/src/pages/enrutador_page.dart';
 import 'package:redciclapp/src/pages/verifica_page.dart';
+// Provides de usuario
 import 'package:redciclapp/src/providers/usuario_provider.dart';
 import 'package:redciclapp/src/states/current_user.dart';
 
@@ -12,8 +14,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  //Controlador de texto para que el email y la contraseña cumplan criterios de validez
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  //usuario
   final usuarioProvider = new UsuarioProvider();
 
   @override
@@ -21,12 +25,14 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
         body: Stack(
       children: <Widget>[
+        //Cargar el Diseño de la página
         _crearFondo(context),
         _loginform(context),
       ],
     ));
   }
 
+// Formulario para el inicio de sesión
   Widget _loginform(BuildContext context) {
     final bloc = Provider2.of(context);
     final size = MediaQuery.of(context).size;
@@ -61,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           SizedBox(height: 5.0),
+          //Enruta a Signin page
           FlatButton(
             child: Text('¿No tienes cuenta? --> Crea una cuenta'),
             onPressed: () => Navigator.pushReplacementNamed(context, 'signin'),
@@ -71,6 +78,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+// Caja para ingresar la dirección de correo
   Widget _crearEmail(LoginBloc bloc) {
     return StreamBuilder(
       stream: bloc.emailStream,
@@ -109,6 +117,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+//Caja para ingresar la contraseña
   Widget _crearContrasena(LoginBloc bloc) {
     return StreamBuilder(
       stream: bloc.passwordStream,
