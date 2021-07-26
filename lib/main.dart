@@ -19,7 +19,7 @@ import 'package:redciclapp/src/pages/denunciaaco_page.dart';
 import 'package:redciclapp/src/pages/denunciaeco_page.dart';
 import 'package:redciclapp/src/pages/denunciares_page.dart';
 import 'package:redciclapp/src/pages/ecoemprendimientosaprobar_page.dart';
-import 'package:redciclapp/src/pages/home_page.dart';
+import 'package:redciclapp/src/pages/mapping_page/components/mapping.dart';
 import 'package:redciclapp/src/pages/inicio_page.dart';
 import 'package:redciclapp/src/pages/intro_page.dart';
 import 'package:redciclapp/src/pages/login_page.dart';
@@ -76,7 +76,7 @@ class _MyAppState extends State<MyApp> {
         initialRoute: 'splash',
         //Acá están todas las rutas a las páginas de la aplicación
         routes: {
-          'home': (BuildContext context) => HomePage(),
+          'mapping': (BuildContext context) => MappingPage(),
           'login': (BuildContext context) => LoginPage(),
           'signin': (BuildContext context) => SigninPage(),
           'splash': (BuildContext context) => ScrollPage(),
