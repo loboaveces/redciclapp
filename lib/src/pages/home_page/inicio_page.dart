@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:redciclapp/src/models/acopiador_model.dart';
 import 'package:redciclapp/src/models/ecoemprendimiento_model.dart';
 import 'package:redciclapp/src/models/recicladora_model.dart';
+import 'package:redciclapp/src/pages/home_page/components/botones.dart';
 import 'package:redciclapp/src/preferencias_usuario/preferencias_usuario.dart';
 import 'package:redciclapp/src/providers/acopio_provider.dart';
 import 'package:redciclapp/src/providers/ecoemprendimiento_provider.dart';
@@ -17,10 +18,6 @@ class Inicio extends StatefulWidget {
   _InicioState createState() => _InicioState();
 }
 
-Color colorRecicladora = Colors.white;
-Color colorEcoemprendimiento = Colors.white;
-Color colorAcopiador = Colors.white;
-
 class _InicioState extends State<Inicio> {
   final centroAcopioProvider = new CentroAcopioProvider();
   final ecoemprendimientoProvider = new EcoemprendimientoProvider();
@@ -33,8 +30,6 @@ class _InicioState extends State<Inicio> {
 
   List<Ecoemprendimiento> _eco = List<Ecoemprendimiento>();
   List<Ecoemprendimiento> _ecofiltrado = List<Ecoemprendimiento>();
-
-  String contenedor = 'recicladoras';
 
   final TextEditingController _filter = new TextEditingController();
 
@@ -112,7 +107,7 @@ class _InicioState extends State<Inicio> {
         body: ListView(
           children: <Widget>[
             SizedBox(height: 20),
-            _botones(),
+            Botones(),
             SizedBox(height: 10),
             _elegirciudad(),
             _elegirzona(),
@@ -137,119 +132,6 @@ class _InicioState extends State<Inicio> {
     } else {
       return Container();
     }
-  }
-
-  Widget _botones() {
-    return Row(
-      children: <Widget>[
-        SizedBox(
-          width: 40,
-        ),
-        Column(
-          children: <Widget>[
-            Container(
-              height: 45,
-              width: 45,
-              decoration: BoxDecoration(
-                color: colorRecicladora,
-                image: DecorationImage(
-                  image: AssetImage('assets/residuos.png'),
-                ),
-              ),
-              child: new FlatButton(
-                  padding: EdgeInsets.all(0.0),
-                  onPressed: () {
-                    setState(() {
-                      colorRecicladora = Colors.green[900];
-                      colorAcopiador = Colors.white;
-                      colorEcoemprendimiento = Colors.white;
-                      contenedor = 'recicladoras';
-                    });
-                  },
-                  child: null),
-            ),
-            SizedBox(height: 5.0),
-            Text(
-              'Recicladoras\nde base',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        Expanded(
-          child: SizedBox(
-            width: 30,
-          ),
-        ),
-        Column(
-          children: <Widget>[
-            Container(
-              height: 45,
-              width: 45,
-              decoration: BoxDecoration(
-                color: colorEcoemprendimiento,
-                image: DecorationImage(
-                  image: AssetImage('assets/eco_emprendimiento.png'),
-                ),
-              ),
-              child: new FlatButton(
-                  padding: EdgeInsets.all(0.0),
-                  onPressed: () {
-                    setState(() {
-                      colorRecicladora = Colors.white;
-                      colorAcopiador = Colors.white;
-                      colorEcoemprendimiento = Colors.green[900];
-                      contenedor = 'ecoemprendimientos';
-                    });
-                  },
-                  child: null),
-            ),
-            SizedBox(height: 5.0),
-            Text(
-              'Eco\nemprendimientos',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        Expanded(
-          child: SizedBox(
-            width: 30,
-          ),
-        ),
-        Column(
-          children: <Widget>[
-            Container(
-              height: 45,
-              width: 45,
-              decoration: BoxDecoration(
-                color: colorAcopiador,
-                image: DecorationImage(
-                  image: AssetImage('assets/ubicacion.png'),
-                ),
-              ),
-              child: new FlatButton(
-                  padding: EdgeInsets.all(0.0),
-                  onPressed: () {
-                    setState(() {
-                      colorRecicladora = Colors.white;
-                      colorAcopiador = Colors.green[900];
-                      colorEcoemprendimiento = Colors.white;
-                      contenedor = 'acopiadores';
-                    });
-                  },
-                  child: null),
-            ),
-            SizedBox(height: 5.0),
-            Text(
-              'Puntos\nde acopio',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        SizedBox(
-          width: 40,
-        ),
-      ],
-    );
   }
 
   Widget _searchBar() {
@@ -530,20 +412,6 @@ class _InicioState extends State<Inicio> {
   }
 
   Widget _itemRecicladora(BuildContext context, Recicladora recicladora) {
-    print(recicladora.zona);
-    print(recicladora.celular);
-    print(recicladora.departamento); //ok
-    print(recicladora.correo); //ok
-    print(recicladora.detalles); //ok
-    print(recicladora.ruta); //ok
-    print(recicladora.fecha); //ok
-    print(recicladora.fotourl); //ok
-    print(recicladora.horarios);
-    print(recicladora.id); //ok
-    print(recicladora.nombre); //ok
-    print(recicladora.recolecta);
-    print(recicladora.dias);
-
     return (ListTile(
       leading: Image(
           image: AssetImage('assets/residuos.png'), height: 25, width: 25),
@@ -587,7 +455,7 @@ class _InicioState extends State<Inicio> {
             value: _opcionSeleccionada,
             style: TextStyle(
                 color: Color.fromRGBO(34, 181, 115, 1.0), fontSize: 16),
-            items: getOpcionesDropDown(),
+            items: ciudadDropDown(),
             onChanged: (opt) {
               setState(() {
                 _opcionSeleccionada = opt;
@@ -600,7 +468,7 @@ class _InicioState extends State<Inicio> {
     );
   }
 
-  List<DropdownMenuItem<String>> getOpcionesDropDown() {
+  List<DropdownMenuItem<String>> ciudadDropDown() {
     List<DropdownMenuItem<String>> lista = new List();
     _localidades.forEach((depto) {
       lista.add(DropdownMenuItem(
@@ -623,7 +491,7 @@ class _InicioState extends State<Inicio> {
             value: _zonaElegida,
             style: TextStyle(
                 color: Color.fromRGBO(34, 181, 115, 1.0), fontSize: 16),
-            items: getOpcionesDropDown2(),
+            items: zonaDropDown2(),
             onChanged: (opt) {
               setState(() {
                 _zonaElegida = opt;
@@ -636,7 +504,7 @@ class _InicioState extends State<Inicio> {
     );
   }
 
-  List<DropdownMenuItem<String>> getOpcionesDropDown2() {
+  List<DropdownMenuItem<String>> zonaDropDown2() {
     List<DropdownMenuItem<String>> lista = new List();
     _zonasLpz.forEach((zone) {
       lista.add(DropdownMenuItem(
@@ -647,27 +515,4 @@ class _InicioState extends State<Inicio> {
 
     return lista;
   }
-
-  // Widget _bottonNavigationBar(BuildContext context) {
-  //   return new Theme(
-  //     data: Theme.of(context).copyWith(
-  //       canvasColor: Color.fromRGBO(34, 181, 115, 1.0),
-  //       primaryColor: Colors.white,
-  //     ),
-  //     child: BottomNavigationBar(items: [
-  //       BottomNavigationBarItem(
-  //         icon: Icon(Icons.home, size: 30.0),
-  //         label: Container(),
-  //       ),
-  //       BottomNavigationBarItem(
-  //         icon: Icon(Icons.view_agenda, size: 30.0),
-  //         title: Container(),
-  //       ),
-  //       BottomNavigationBarItem(
-  //         icon: Icon(Icons.exit_to_app, size: 30.0),
-  //         title: Container(),
-  //       ),
-  //     ]),
-  //   );
-  // }
 }

@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:redciclapp/src/pages/inicio_page.dart';
+import 'package:redciclapp/src/pages/home_page/inicio_page.dart';
 
 class IntroPage extends StatelessWidget {
   List<PageViewModel> getPages() {
